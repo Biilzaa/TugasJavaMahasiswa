@@ -10,6 +10,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.ArrayList;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 public class DatabaseOOP extends javax.swing.JFrame {
 
@@ -62,6 +69,7 @@ public class DatabaseOOP extends javax.swing.JFrame {
         txtNim = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblMahasiswa = new javax.swing.JTable();
+        btnUploadCSV = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(90, 87, 186));
@@ -112,6 +120,13 @@ public class DatabaseOOP extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tblMahasiswa);
 
+        btnUploadCSV.setText("Upload CSV");
+        btnUploadCSV.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUploadCSVActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -121,26 +136,28 @@ public class DatabaseOOP extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblFormMahasiswa)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(lblNama)
                                     .addComponent(lblNim))
                                 .addGap(32, 32, 32)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtNim, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(144, 144, 144)
+                                        .addGap(107, 107, 107)
                                         .addComponent(btnTambah)
                                         .addGap(18, 18, 18)
                                         .addComponent(btnUbah, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(18, 18, 18)
-                                        .addComponent(btnHapus))))
-                            .addComponent(lblFormMahasiswa)))
+                                        .addComponent(btnHapus)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(btnUploadCSV))
+                                    .addComponent(txtNim, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 661, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(53, Short.MAX_VALUE))
+                .addGap(28, 53, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -157,8 +174,9 @@ public class DatabaseOOP extends javax.swing.JFrame {
                     .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnUbah)
                     .addComponent(btnTambah)
-                    .addComponent(btnHapus))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                    .addComponent(btnHapus)
+                    .addComponent(btnUploadCSV))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -245,6 +263,86 @@ public class DatabaseOOP extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNamaActionPerformed
 
+    private void btnUploadCSVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadCSVActionPerformed
+        // TODO add your handling code here:
+        JFileChooser fileChooser = new JFileChooser();
+      
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV Files (*.csv)", "csv");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            int berhasil = 0;
+            int gagal = 0;
+            StringBuilder detailGagal = new StringBuilder();
+
+         
+            try (BufferedReader br = new BufferedReader(new FileReader(selectedFile))) {
+                String line;
+                boolean isHeader = false; 
+
+                while ((line = br.readLine()) != null) {
+                    
+                   
+                    
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
+
+                    String[] data = line.split(","); 
+
+                    
+                    if (data.length == 2) {
+                        try {
+                            int nim = Integer.parseInt(data[0].trim());
+                            String nama = data[1].trim();
+                            
+                            mahasiswa m = new mahasiswa(nim, nama);
+                            JavaDatabaseOOP.insert(m); 
+                            berhasil++;
+                        } catch (NumberFormatException e) {
+                            
+                            gagal++;
+                            detailGagal.append("Baris: ").append(line).append(" (Error: NIM bukan angka)\n");
+                        } catch (Exception e) {
+
+                            gagal++;
+                            detailGagal.append("Baris: ").append(line).append(" (Error: ").append(e.getMessage()).append(")\n");
+                        }
+                    } else {
+                       
+                        gagal++;
+                        detailGagal.append("Baris: ").append(line).append(" (Error: Format kolom salah, harus ada 2 kolom)\n");
+                    }
+                }
+
+              
+                loadData();
+
+               
+                String pesan = "Impor Selesai.\nBerhasil: " + berhasil + " baris.\nGagal: " + gagal + " baris.";
+                if (gagal > 0) {
+                  
+                    JTextArea textArea = new JTextArea(pesan + "\n\nDetail Kegagalan:\n" + detailGagal.toString());
+                    JScrollPane scrollPane = new JScrollPane(textArea);
+                    textArea.setLineWrap(true);
+                    textArea.setWrapStyleWord(true);
+                    textArea.setEditable(false);
+                    scrollPane.setPreferredSize(new java.awt.Dimension(500, 300));
+                    JOptionPane.showMessageDialog(this, scrollPane, "Laporan Impor", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, pesan, "Impor Sukses", JOptionPane.INFORMATION_MESSAGE);
+                }
+
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Gagal membaca file: " + e.getMessage(), "Error File", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    
+    }//GEN-LAST:event_btnUploadCSVActionPerformed
+
     public static void main(String args[]) {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -301,6 +399,7 @@ public class DatabaseOOP extends javax.swing.JFrame {
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnTambah;
     private javax.swing.JButton btnUbah;
+    private javax.swing.JButton btnUploadCSV;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblFormMahasiswa;
     private javax.swing.JLabel lblNama;
